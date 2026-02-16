@@ -14,32 +14,25 @@ void callbackDispatcher() {
 }
 
 void main() {
-  // Ensure Flutter bindings are initialized before doing background work
+  // Ensure Flutter bindings are initialized before doing background work.
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 1. Initialize the Workmanager with our top-level function
+  // Initialize the Workmanager.
   Workmanager().initialize(
     callbackDispatcher,
-    // Set to true so you can see prints in the console while testing
-    isInDebugMode: true,
+    isInDebugMode: true, // Set to true to see debug logs.
   );
 
-  // 2. Schedule the recurring task
+  // Schedule the recurring task.
   Workmanager().registerPeriodicTask(
-    "update-leetcode-widget-task", // A unique name for the task
-    "fetchLeetCodeData", // The task type
-    frequency: const Duration(hours: 1), // How often it should run
+    "update-leetcode-widget-task",
+    "fetchLeetCodeData",
+    frequency: const Duration(hours: 1),
     constraints: Constraints(
-      networkType: NetworkType.connected, // Only run if the phone has internet!
+      networkType: NetworkType.connected, // Only run if the device has internet.
     ),
   );
 
-  // Workmanager().registerOneOffTask(
-  //   "test-task-1", // Unique ID
-  //   "fetchLeetCodeData",
-  //   // Force it to run 10 seconds from now
-  //   initialDelay: const Duration(seconds: 10),
-  // );
   runApp(
     const MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -95,7 +88,7 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
     'Smooth Cyan': '#062A2F,#0E4F5A,#178A9A,#27C5D9,#8FF3FF',
   };
 
-  // --- NEW HELPER FUNCTION ---
+  /// Computes the dynamic palette based on the system theme.
   String _getDynamicPalette() {
     final basePalette = themePalettes[_selectedTheme]!;
     
@@ -116,19 +109,19 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
   void initState() {
     super.initState();
     _loadSavedUsername();
-    // 1. Tell Flutter to start listening to the OS
+    // Register the OS listener.
     WidgetsBinding.instance.addObserver(this); 
   }
 
   @override
   void dispose() {
-    // 2. Stop listening when the app is closed to prevent memory leaks
+    // Unregister the listener to prevent memory leaks.
     WidgetsBinding.instance.removeObserver(this);
     _usernameController.dispose();
     super.dispose();
   }
 
-  // 3. This fires the exact millisecond the phone changes Light/Dark mode!
+  // Called when the platform brightness changes (e.g. Light/Dark mode).
   @override
   void didChangePlatformBrightness() {
     super.didChangePlatformBrightness();
@@ -160,13 +153,11 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
       // Save the theme name locally so the UI remembers it
       await prefs.setString('widget_theme_name', _selectedTheme);
 
-      // final String hexPalette = themePalettes[_selectedTheme]!;
-
       final String hexPalette = _getDynamicPalette();
-      // --- ADD THIS LINE ---
-      // Save the hex string to Flutter's local storage for the background task!
+
+      // Save the hex string to Flutter's local storage for the background task.
       await prefs.setString('widget_color_palette', hexPalette);
-      // ---------------------
+      
       await HomeWidget.saveWidgetData<String>(
         'widget_color_palette',
         hexPalette,
@@ -182,13 +173,12 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
           daysToFetch: 365,
         );
 
-        // --- NEW: Send the raw hex string to Kotlin! ---
+        // Send the raw hex string to Android native code.
         final String hexPalette = themePalettes[_selectedTheme]!;
         await HomeWidget.saveWidgetData<String>(
           'widget_color_palette',
           hexPalette,
         );
-        // -----------------------------------------------
 
         await HomeWidget.saveWidgetData<String>('widget_data', heatmapString);
         await HomeWidget.updateWidget(name: 'LeetCodeWidgetProvider');
@@ -221,13 +211,13 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
   // Triggers a native redraw without making a network request
   Future<void> _redrawWidgetFast() async {
     try {
-      // 1. Recalculate colors for the new theme
+      // Recalculate colors for the new theme.
       final String newPalette = _getDynamicPalette();
       
-      // 2. Send the updated colors to Native Android
+      // Send the updated colors to Native Android.
       await HomeWidget.saveWidgetData<String>('widget_color_palette', newPalette);
       
-      // 3. Trigger the redraw
+      // Trigger the redraw.
       await HomeWidget.updateWidget(name: 'LeetCodeWidgetProvider');
       debugPrint("Widget fast-redrawn for theme change!");
     } catch (e) {
@@ -282,7 +272,7 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
               ),
             ),
             const SizedBox(height: 24),
-            // --- NEW DROPDOWN UI ---
+            
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
@@ -313,7 +303,7 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
               ),
             ),
             const SizedBox(height: 24),
-            // --- END DROPDOWN UI ---
+
             ElevatedButton(
               onPressed: _isLoading ? null : updateWidget,
               style: ElevatedButton.styleFrom(

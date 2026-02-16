@@ -18,7 +18,7 @@ Future<bool> performBackgroundFetch({
     final prefs = await (prefsFuture ?? SharedPreferences.getInstance());
     final username = prefs.getString('leetcode_username');
     
-    // --- NEW: Grab the saved hex palette (with a fallback to default Green) ---
+    // Retrieve the saved hex palette, defaulting to green if not found.
     final savedPalette = prefs.getString('widget_color_palette') 
         ?? '#333333,#0e4429,#006d32,#26a641,#39d353';
 
@@ -36,7 +36,7 @@ Future<bool> performBackgroundFetch({
       final saver = saveWidgetData ?? HomeWidget.saveWidgetData;
       final updater = updateWidget ?? HomeWidget.updateWidget;
 
-      // --- NEW: Send the palette over the bridge alongside the data! ---
+      // Update widget data with palette and heatmap info.
       await saver<String>('widget_color_palette', savedPalette);
       await saver<String>('widget_data', heatmapString);
       await updater(name: 'LeetCodeWidgetProvider');

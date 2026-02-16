@@ -14,7 +14,6 @@ import es.antonborri.home_widget.HomeWidgetPlugin
 import kotlin.math.ceil
 import androidx.core.graphics.toColorInt
 import androidx.core.graphics.createBitmap
-// --- NEW IMPORT ---
 import androidx.core.content.ContextCompat
 
 class LeetCodeWidgetProvider : HomeWidgetProvider() {
@@ -82,14 +81,14 @@ class LeetCodeWidgetProvider : HomeWidgetProvider() {
             val widthPx = (cols * (cellSize + cellPadding)).toInt()
             val heightPx = (rows * (cellSize + cellPadding)).toInt()
 
-            // --- CREATE TWO CANVASES ---
+            // Separate bitmaps for empty and filled cells allow independent tinting/theming.
             val emptyBitmap = createBitmap(widthPx, heightPx)
             val filledBitmap = createBitmap(widthPx, heightPx)
             
             val emptyCanvas = Canvas(emptyBitmap)
             val filledCanvas = Canvas(filledBitmap)
             
-            // Paint for empty squares MUST be solid white so the XML tint can color it
+            // Paint for empty squares must be solid white so the XML tint can color it correctly.
             val emptyPaint = Paint().apply { 
                 style = Paint.Style.FILL 
                 color = Color.WHITE 
@@ -97,8 +96,7 @@ class LeetCodeWidgetProvider : HomeWidgetProvider() {
             
             val filledPaint = Paint().apply { style = Paint.Style.FILL }
 
-            // --- THE FIX: Grab the native Android color ---
-            // This natively respects your values/colors.xml and values-night/colors.xml
+            // Get the native empty cell color that respects the device's Light/Dark mode.
             val nativeEmptyColor = ContextCompat.getColor(context, R.color.empty_cell)
 
             val paletteString = widgetData.getString("widget_color_palette", "#333333,#0e4429,#006d32,#26a641,#39d353")
@@ -123,7 +121,7 @@ class LeetCodeWidgetProvider : HomeWidgetProvider() {
 
                 val intensityLevel = intensities[i].coerceIn(0, 4)
 
-                // --- THE FIX: Split the drawing layers ---
+                // Draw to separate layers.
                 if (intensityLevel == 0) {
                     emptyCanvas.drawRoundRect(left, top, right, bottom, 4f * density, 4f * density, emptyPaint)
                 } else {
