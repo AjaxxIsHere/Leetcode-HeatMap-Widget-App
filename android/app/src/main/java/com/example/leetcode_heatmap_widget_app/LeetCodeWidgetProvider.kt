@@ -15,8 +15,29 @@ import kotlin.math.ceil
 import androidx.core.graphics.toColorInt
 import androidx.core.graphics.createBitmap
 import androidx.core.content.ContextCompat
+import android.content.res.Configuration
+import android.content.Intent
+import android.content.ComponentName
 
 class LeetCodeWidgetProvider : HomeWidgetProvider() {
+
+    // --- NEW: The Catcher's Mitt for OS Broadcasts ---
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+
+        // If the OS shouts that the theme just changed (Light/Dark mode)
+        if (intent.action == "android.intent.action.UI_MODE_CHANGED") {
+            val appWidgetManager = AppWidgetManager.getInstance(context)
+            val componentName = ComponentName(context, LeetCodeWidgetProvider::class.java)
+            val appWidgetIds = appWidgetManager.getAppWidgetIds(componentName)
+
+            // Grab the saved data and force a redraw instantly!
+            val widgetData = HomeWidgetPlugin.getData(context)
+            for (widgetId in appWidgetIds) {
+                drawResponsiveHeatmap(context, appWidgetManager, widgetId, widgetData)
+            }
+        }
+    }
 
     override fun onUpdate(
         context: Context,
@@ -81,19 +102,22 @@ class LeetCodeWidgetProvider : HomeWidgetProvider() {
             val widthPx = (cols * (cellSize + cellPadding)).toInt()
             val heightPx = (rows * (cellSize + cellPadding)).toInt()
 
+            // Check if the OS is in Dark Mode
+            val isNightMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+
             // Separate bitmaps for empty and filled cells allow independent tinting/theming.
             val emptyBitmap = createBitmap(widthPx, heightPx)
             val filledBitmap = createBitmap(widthPx, heightPx)
-            
+
             val emptyCanvas = Canvas(emptyBitmap)
             val filledCanvas = Canvas(filledBitmap)
-            
+
             // Paint for empty squares must be solid white so the XML tint can color it correctly.
-            val emptyPaint = Paint().apply { 
-                style = Paint.Style.FILL 
-                color = Color.WHITE 
+            val emptyPaint = Paint().apply {
+                style = Paint.Style.FILL
+                color = Color.WHITE
             }
-            
+
             val filledPaint = Paint().apply { style = Paint.Style.FILL }
 
             // Get the native empty cell color that respects the device's Light/Dark mode.
@@ -121,13 +145,26 @@ class LeetCodeWidgetProvider : HomeWidgetProvider() {
 
                 val intensityLevel = intensities[i].coerceIn(0, 4)
 
-                // Draw to separate layers.
+                // --- THE FIX: Reverse the intensity for Light Mode ---
                 if (intensityLevel == 0) {
+                    // Empty squares are handled by Android XML
                     emptyCanvas.drawRoundRect(left, top, right, bottom, 4f * density, 4f * density, emptyPaint)
                 } else {
-                    filledPaint.color = colors[intensityLevel]
+                    // If Dark Mode, use normal intensity (1,2,3,4)
+                    // If Light Mode, reverse it: 5 - 1 = 4, 5 - 2 = 3, etc.
+                    val mappedIntensity = if (isNightMode) intensityLevel else (5 - intensityLevel)
+
+                    filledPaint.color = colors[mappedIntensity]
                     filledCanvas.drawRoundRect(left, top, right, bottom, 4f * density, 4f * density, filledPaint)
                 }
+
+//                // Draw to separate layers.
+//                if (intensityLevel == 0) {
+//                    emptyCanvas.drawRoundRect(left, top, right, bottom, 4f * density, 4f * density, emptyPaint)
+//                } else {
+//                    filledPaint.color = colors[intensityLevel]
+//                    filledCanvas.drawRoundRect(left, top, right, bottom, 4f * density, 4f * density, filledPaint)
+//                }
             }
 
             views.setImageViewBitmap(R.id.widget_empty_grid, emptyBitmap)

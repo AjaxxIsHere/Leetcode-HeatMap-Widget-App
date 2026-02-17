@@ -18,13 +18,14 @@
 
     <application
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
-        android:label="LC HeatMap">
+        android:icon="@mipmap/launcher_icon"
+        android:label="Leet Grid - Heatmap Widget">
         <receiver
             android:name=".LeetCodeWidgetProvider"
-            android:exported="false">
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.UI_MODE_CHANGED" />
             </intent-filter>
 
             <meta-data

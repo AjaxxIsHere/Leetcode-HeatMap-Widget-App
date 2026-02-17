@@ -225,113 +225,165 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
     }
   }
 
+  // Converts a hex string like "#39d353" to a Flutter Color object
+  Color _hexToColor(String hexString) {
+    final buffer = StringBuffer();
+    if (hexString.length == 6 || hexString.length == 7) buffer.write('ff');
+    buffer.write(hexString.replaceFirst('#', ''));
+    return Color(int.parse(buffer.toString(), radix: 16));
+  }
+
   @override
   Widget build(BuildContext context) {
-    // A clean, dark-themed starting point for our ricing setup
+    // 1. Extract the current palette string
+    final currentPalette = themePalettes[_selectedTheme]!.split(',');
+    
+    // 2. Generate our dynamic UI colors!
+    final Color baseColor = _hexToColor(currentPalette[0]); // Darkest (Index 0)
+    final Color accentColor = _hexToColor(currentPalette.last); // Brightest (Index 4)
+    
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: AppBar(
-        title: const Text(
-          "LeetCode Widget",
-          style: TextStyle(color: Colors.white),
+      // Dynamic Background: Fades from the theme's base color down to pure black
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              baseColor.withValues(alpha: 0.8), 
+              const Color(0xFF020617), 
+            ],
+          ),
         ),
-        backgroundColor: const Color(0xFF1E1E1E),
-        elevation: 0,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              "Setup Your Profile",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _usernameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                labelText: "LeetCode Username",
-                labelStyle: const TextStyle(color: Colors.grey),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.grey),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.green),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: const Icon(Icons.person, color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 24),
-            
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: _selectedTheme,
-                  dropdownColor: const Color(0xFF1E1E1E),
-                  icon: const Icon(Icons.palette, color: Colors.grey),
-                  isExpanded: true,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  items: themePalettes.keys.map((String themeName) {
-                    return DropdownMenuItem<String>(
-                      value: themeName,
-                      child: Text(themeName),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    if (newValue != null) {
-                      setState(() {
-                        _selectedTheme = newValue;
-                      });
-                    }
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            ElevatedButton(
-              onPressed: _isLoading ? null : updateWidget,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
-                      ),
-                    )
-                  : const Text(
-                      "Save & Sync Widget",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Hero Icon Header - Now tinted with the Accent Color!
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: baseColor.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: baseColor, width: 2),
                     ),
+                    child: Icon(Icons.grid_view_rounded, size: 64, color: accentColor),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    "Heatmap Widget",
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 1.2,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Configure your home screen setup",
+                    style: TextStyle(fontSize: 16, color: Colors.grey[400]),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 40),
+
+                  // The "Settings Card" - Dynamically tinted by the Base Color
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: baseColor.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: baseColor, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                    ]),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("LEETCODE PROFILE", style: TextStyle(color: accentColor.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                        const SizedBox(height: 12),
+                        TextField(
+                          controller: _usernameController,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: Colors.black.withValues(alpha: 0.3),
+                            hintText: "Enter username...",
+                            hintStyle: TextStyle(color: Colors.grey[600]),
+                            contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: accentColor, width: 2)),
+                            prefixIcon: Icon(Icons.person_outline, color: accentColor),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text("WIDGET THEME", style: TextStyle(color: accentColor.withValues(alpha: 0.8), fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedTheme,
+                              dropdownColor: baseColor,
+                              icon: Icon(Icons.palette_outlined, color: accentColor),
+                              isExpanded: true,
+                              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500),
+                              items: themePalettes.keys.map((String themeName) {
+                                return DropdownMenuItem<String>(
+                                  value: themeName,
+                                  child: Text(themeName),
+                                );
+                              }).toList(),
+                              onChanged: (String? newValue) {
+                                if (newValue != null) setState(() => _selectedTheme = newValue);
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+
+                  // The Save Button - Powered entirely by the Accent Color
+                  ElevatedButton(
+                    onPressed: _isLoading ? null : updateWidget,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentColor,
+                      foregroundColor: baseColor.computeLuminance() > 0.5 ? Colors.black : Colors.white, // Auto-adjust text color for readability
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      elevation: 8,
+                      shadowColor: accentColor.withValues(alpha: 0.5),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: _isLoading
+                        ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3))
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.sync_rounded, size: 24),
+                              SizedBox(width: 12),
+                              Text("Save & Sync Widget", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
