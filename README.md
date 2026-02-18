@@ -1,4 +1,4 @@
-# leetcode_heatmap_widget_app
+# Leet Grid - Heatmap Widgets and more!
 
 A new Flutter project.
 

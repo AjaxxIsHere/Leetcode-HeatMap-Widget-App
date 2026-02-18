@@ -21,6 +21,28 @@
         android:icon="@mipmap/launcher_icon"
         android:label="Leet Grid - Heatmap Widget">
         <receiver
+            android:name=".RingsWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/rings_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".StreakWidgetProvider"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/streak_widget_provider_info" />
+        </receiver>
+        <receiver
             android:name=".LeetCodeWidgetProvider"
             android:exported="true">
             <intent-filter>

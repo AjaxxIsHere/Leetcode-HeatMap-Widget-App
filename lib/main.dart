@@ -150,38 +150,43 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('leetcode_username', username);
-      // Save the theme name locally so the UI remembers it
       await prefs.setString('widget_theme_name', _selectedTheme);
 
       final String hexPalette = _getDynamicPalette();
 
-      // Save the hex string to Flutter's local storage for the background task.
       await prefs.setString('widget_color_palette', hexPalette);
-      
-      await HomeWidget.saveWidgetData<String>(
-        'widget_color_palette',
-        hexPalette,
-      );
+      await HomeWidget.saveWidgetData<String>('widget_color_palette', hexPalette);
 
-      final rawCalendarData = await LeetCodeService.fetchSubmissionCalendar(
-        username,
-      );
+      // --- UPGRADED API CALL ---
+      final userData = await LeetCodeService.fetchUserData(username);
+      debugPrint("Fetched user data: $userData");
 
-      if (rawCalendarData != null) {
+      if (userData != null) {
         final String heatmapString = LeetCodeService.processHeatmapData(
-          rawCalendarData,
+          userData['calendar'],
           daysToFetch: 365,
         );
 
-        // Send the raw hex string to Android native code.
-        final String hexPalette = themePalettes[_selectedTheme]!;
-        await HomeWidget.saveWidgetData<String>(
-          'widget_color_palette',
-          hexPalette,
-        );
-
+        // Save Heatmap Data
         await HomeWidget.saveWidgetData<String>('widget_data', heatmapString);
+        debugPrint("Saved heatmap data for widget.");
+        
+        // NEW: Save Streak and Rings Data!
+        await HomeWidget.saveWidgetData<String>('widget_data', heatmapString);
+        await HomeWidget.saveWidgetData<String>('streak_count', userData['streak'].toString());
+        await HomeWidget.saveWidgetData<String>('solved_easy', userData['easy'].toString());
+        await HomeWidget.saveWidgetData<String>('solved_medium', userData['medium'].toString());
+        await HomeWidget.saveWidgetData<String>('solved_hard', userData['hard'].toString());
+        await HomeWidget.saveWidgetData<String>('solved_total', userData['total'].toString());
+        
+        // NEW: Save Platform Totals
+        await HomeWidget.saveWidgetData<String>('platform_easy', userData['platform_easy'].toString());
+        await HomeWidget.saveWidgetData<String>('platform_medium', userData['platform_medium'].toString());
+        await HomeWidget.saveWidgetData<String>('platform_hard', userData['platform_hard'].toString());
+
         await HomeWidget.updateWidget(name: 'LeetCodeWidgetProvider');
+        await HomeWidget.updateWidget(name: 'StreakWidgetProvider');
+        await HomeWidget.updateWidget(name: 'RingsWidgetProvider');
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -219,6 +224,9 @@ class _WidgetSetupScreenState extends State<WidgetSetupScreen> with WidgetsBindi
       
       // Trigger the redraw.
       await HomeWidget.updateWidget(name: 'LeetCodeWidgetProvider');
+      await HomeWidget.updateWidget(name: 'StreakWidgetProvider');
+      await HomeWidget.updateWidget(name: 'RingsWidgetProvider');
+
       debugPrint("Widget fast-redrawn for theme change!");
     } catch (e) {
       debugPrint("Error redrawing widget: $e");

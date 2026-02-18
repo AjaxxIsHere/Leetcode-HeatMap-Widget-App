@@ -2,5 +2,7 @@
 <resources>
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">Track your LeetCode streak right from your home screen with a sleek, highly customizable contribution heatmap.</string>
+    <string name="heatmap_widget_description">Track your LeetCode streak right from your home screen with a sleek, highly customizable contribution heatmap.</string>
+    <string name="streak_widget_description">TEst test etstes</string>
+    <string name="rings_widget_description">TEst test etstes</string>
 </resources>
